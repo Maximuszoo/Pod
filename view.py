@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar
+    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea
 )
 
 class TextBlockWidget(QWidget):
@@ -28,9 +28,17 @@ class PodcastView(QWidget):
 
         self.text_block_widgets = []
 
-        # Grid layout para los bloques de texto
-        self.grid_layout = QVBoxLayout()
-        self.layout.addLayout(self.grid_layout)
+        # ScrollArea para los bloques de texto
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+
+        # Widget interno para la ScrollArea
+        self.scroll_widget = QWidget()
+        self.scroll_layout = QVBoxLayout(self.scroll_widget)
+        self.scroll_area.setWidget(self.scroll_widget)
+
+        # Agregar la ScrollArea al layout principal
+        self.layout.addWidget(self.scroll_area)
 
         # Botón para agregar un nuevo bloque de texto
         self.add_text_block_button = QPushButton("Agregar bloque de texto")
@@ -52,5 +60,5 @@ class PodcastView(QWidget):
     def add_text_block_widget(self, text='', voice=''):
         widget = TextBlockWidget(text, voice)
         self.text_block_widgets.append(widget)
-        self.grid_layout.addWidget(widget)
+        self.scroll_layout.addWidget(widget)
 
