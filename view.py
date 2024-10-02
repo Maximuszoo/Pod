@@ -1,9 +1,9 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea
+    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea, QHBoxLayout
 )
 
 class TextBlockWidget(QWidget):
-    def __init__(self, text='', voice='', parent=None):
+    def __init__(self, text='', voice='', remove_callback=None, parent=None):
         super().__init__(parent)
         self.layout = QGridLayout(self)
 
@@ -15,11 +15,17 @@ class TextBlockWidget(QWidget):
         if voice:
             self.voice_combo.setCurrentText(voice)
 
+        # Botón para eliminar el bloque
+        self.remove_button = QPushButton("Eliminar")
+        self.remove_button.clicked.connect(remove_callback)
+
+        # Añadir los elementos al layout
         self.layout.addWidget(QLabel('Texto:'), 0, 0)
         self.layout.addWidget(self.text_edit, 0, 1)
         self.layout.addWidget(QLabel('Voz:'), 1, 0)
         self.layout.addWidget(self.voice_combo, 1, 1)
-
+        self.layout.addWidget(self.remove_button, 2, 1)  # Colocar el botón de eliminar
+        
 
 class PodcastView(QWidget):
     def __init__(self):
@@ -58,7 +64,15 @@ class PodcastView(QWidget):
         self.layout.addWidget(self.status_label)
 
     def add_text_block_widget(self, text='', voice=''):
-        widget = TextBlockWidget(text, voice)
+        """Agrega un bloque de texto con la opción de eliminarlo"""
+        # Definir la función de eliminación para este bloque
+        def remove_block():
+            widget.deleteLater()
+            self.text_block_widgets.remove(widget)
+            self.scroll_layout.removeWidget(widget)
+
+        # Crear el nuevo bloque de texto con el callback de eliminación
+        widget = TextBlockWidget(text, voice, remove_callback=remove_block)
         self.text_block_widgets.append(widget)
         self.scroll_layout.addWidget(widget)
 

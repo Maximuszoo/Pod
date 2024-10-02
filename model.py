@@ -29,6 +29,10 @@ class PodcastModel:
 
         # Procesar cada bloque de texto y generar un archivo temporal
         for idx, block in enumerate(self.text_blocks):
+            if not block.text.strip():
+                print(f"Bloque de texto {idx + 1} está vacío. Se omitirá.")
+                continue  # Omitir bloques vacíos
+
             temp_file = f'temp_{idx}.mp3'
             if block.voice == 'Google':
                 tts = gTTS(text=block.text, lang=self.available_voices[block.voice])
