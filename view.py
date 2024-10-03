@@ -11,7 +11,7 @@ class TextBlockWidget(QWidget):
         self.text_edit.setText(text)
 
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(['Google', 'Male'])
+        self.voice_combo.addItems(['Spanish (Spain)', 'Spanish (Latin America)', 'Google (Latin America)'])
         if voice:
             self.voice_combo.setCurrentText(voice)
 
@@ -25,7 +25,7 @@ class TextBlockWidget(QWidget):
         self.layout.addWidget(QLabel('Voz:'), 1, 0)
         self.layout.addWidget(self.voice_combo, 1, 1)
         self.layout.addWidget(self.remove_button, 2, 1)  # Colocar el botón de eliminar
-        
+
 
 class PodcastView(QWidget):
     def __init__(self):
