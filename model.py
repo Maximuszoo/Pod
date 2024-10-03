@@ -15,8 +15,8 @@ class PodcastModel:
     def get_available_voices(self):
         """Obtiene las voces disponibles para el programa"""
         voices = {
-            'Spanish (Spain)': 'es-ES',  # Código correcto para español de España
-            'Spanish (Latin America)': 'es-419'  # Código para español latino
+            'Google (Spain)': 'es-ES',  # Código correcto para español de España
+            'Google (Latin America)': 'es-419'  # Código para español latino
         }
         return voices
 
