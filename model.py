@@ -1,19 +1,25 @@
-# model.py
-
 import os
 from pydub import AudioSegment  # Necesario para combinar audios
 import requests
 
 class TextBlock:
-    def __init__(self, text='', voice='Google (Latin America)'):
+    def __init__(self, text='', voice='Google (Latin America)', speed='Normal'):
         self.text = text
         self.voice = voice
+        self.speed = speed  # Agregar atributo de velocidad
 
 class PodcastModel:
     def __init__(self):
         self.text_blocks = [TextBlock()]  # Inicia con un bloque de texto
         self.available_voices = self.get_available_voices()
         self.max_tts_chars = 200  # Límite de caracteres para Google TTS
+        self.speed_map = {
+            'Muy lenta': 0.5,  # Desacelerar a la mitad
+            'Lenta': 0.8,      # Desacelerar a 80%
+            'Normal': 1.0,     # Velocidad normal
+            'Rápida': 1.2,     # Acelerar a 120%
+            'Muy rápida': 1.5   # Acelerar a 150%
+        }
 
     def get_available_voices(self):
         """Obtiene las voces disponibles para el programa"""
@@ -43,6 +49,10 @@ class PodcastModel:
 
             # Verificar si el archivo temporal existe y tiene un tamaño adecuado
             if os.path.exists(temp_file) and os.path.getsize(temp_file) > 1000:  # Tamaño mínimo 1KB
+                # Ajustar la velocidad del audio antes de agregarlo
+                adjusted_audio = self.adjust_audio_speed(temp_file, block.speed)
+                adjusted_audio.export(temp_file, format="mp3")  # Guardar el audio ajustado
+
                 temp_files.append(temp_file)
             else:
                 print(f"Error generando el archivo de audio {temp_file}, se omitirá.")
@@ -108,3 +118,23 @@ class PodcastModel:
             segments.append(current_segment.strip())
 
         return segments
+
+    def adjust_audio_speed(self, file_path, speed):
+        """Ajusta la velocidad del audio según la selección del usuario"""
+        audio = AudioSegment.from_file(file_path)
+        playback_speed = self.speed_map.get(speed, 1.0)  # Velocidad normal si no está en el mapa
+
+        if playback_speed > 1.0:
+            # Si la velocidad es mayor a 1, aceleramos el audio
+            audio = audio.speedup(playback_speed=playback_speed)
+        elif playback_speed < 1.0:
+            # Si la velocidad es menor a 1, desaceleramos el audio
+            audio = self.slow_down_audio(audio, playback_speed)
+
+        return audio
+
+    def slow_down_audio(self, audio, factor):
+        """Desacelera el audio extendiendo la duración"""
+        # Redimensiona las muestras de audio para desacelerar
+        new_frame_rate = int(audio.frame_rate * factor)
+        return audio._spawn(audio.raw_data, overrides={'frame_rate': new_frame_rate}).set_frame_rate(audio.frame_rate)

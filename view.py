@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
 )
 
 class TextBlockWidget(QWidget):
-    def __init__(self, text='', voice='Google (Latin America)', remove_callback=None, parent=None):
+    def __init__(self, text='', voice='Google (Latin America)', speed='Normal', remove_callback=None, parent=None):
         super().__init__(parent)
         self.layout = QGridLayout(self)
 
@@ -15,6 +15,10 @@ class TextBlockWidget(QWidget):
         if voice:
             self.voice_combo.setCurrentText(voice)
 
+        self.speed_combo = QComboBox()
+        self.speed_combo.addItems(['Muy lenta', 'Lenta', 'Normal', 'Rápida', 'Muy rápida'])  # Opciones de velocidad
+        self.speed_combo.setCurrentText(speed)
+
         # Botón para eliminar el bloque
         self.remove_button = QPushButton("Eliminar")
         self.remove_button.clicked.connect(remove_callback)
@@ -24,8 +28,9 @@ class TextBlockWidget(QWidget):
         self.layout.addWidget(self.text_edit, 0, 1)
         self.layout.addWidget(QLabel('Voz:'), 1, 0)
         self.layout.addWidget(self.voice_combo, 1, 1)
-        self.layout.addWidget(self.remove_button, 2, 1)  # Colocar el botón de eliminar
-
+        self.layout.addWidget(QLabel('Velocidad:'), 2, 0)
+        self.layout.addWidget(self.speed_combo, 2, 1)
+        self.layout.addWidget(self.remove_button, 3, 1)
 
 class PodcastView(QWidget):
     def __init__(self):
@@ -65,15 +70,13 @@ class PodcastView(QWidget):
 
         self.setMinimumSize(800, 200)  # Establece un ancho mínimo y un alto mínimo en píxeles
 
-    def add_text_block_widget(self, text='', voice='Google (Latin America)'):  # Opción predeterminada
+    def add_text_block_widget(self, text='', voice='Google (Latin America)', speed='Normal'):
         """Agrega un bloque de texto con la opción de eliminarlo"""
-        # Definir la función de eliminación para este bloque
         def remove_block():
             widget.deleteLater()
             self.text_block_widgets.remove(widget)
             self.scroll_layout.removeWidget(widget)
 
-        # Crear el nuevo bloque de texto con el callback de eliminación
-        widget = TextBlockWidget(text, voice, remove_callback=remove_block)
+        widget = TextBlockWidget(text, voice, speed, remove_callback=remove_block)
         self.text_block_widgets.append(widget)
         self.scroll_layout.addWidget(widget)

@@ -29,13 +29,18 @@ class PodcastController(QObject):
 
         for idx, widget in enumerate(self.view.text_block_widgets):
             text = widget.text_edit.toPlainText()
-            voice = widget.voice_combo.currentText()  # Obtener la voz seleccionada
+            voice = widget.voice_combo.currentText()
+            speed = widget.speed_combo.currentText()  # Obtener la velocidad seleccionada
+
+            # Asignar los valores del texto, voz y velocidad en el modelo
             self.model.text_blocks[idx].text = text
-            self.model.text_blocks[idx].voice = self.model.available_voices[voice]  # Asignar la voz correcta
-            
+            self.model.text_blocks[idx].voice = self.model.available_voices[voice]
+            self.model.text_blocks[idx].speed = speed
+
             # Simular procesamiento con un temporizador (o realizar el procesamiento real)
             QTimer.singleShot(1000 * (idx + 1), lambda: self.update_progress(idx + 1, total_blocks))
 
+        # Generar el audio con los bloques de texto y sus respectivas voces y velocidades
         self.model.generate_audio()
         self.view.status_label.setText("Podcast terminado")
 
