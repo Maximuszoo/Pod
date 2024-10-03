@@ -63,6 +63,8 @@ class PodcastView(QWidget):
         self.status_label = QLabel("No iniciado")
         self.layout.addWidget(self.status_label)
 
+        self.setMinimumSize(800, 200)  # Establece un ancho mínimo y un alto mínimo en píxeles
+
     def add_text_block_widget(self, text='', voice=''):
         """Agrega un bloque de texto con la opción de eliminarlo"""
         # Definir la función de eliminación para este bloque
