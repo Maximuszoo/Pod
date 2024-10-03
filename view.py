@@ -11,7 +11,7 @@ class TextBlockWidget(QWidget):
         self.text_edit.setText(text)
 
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(['Spanish (Spain)', 'Spanish (Latin America)', 'Google (Latin America)'])
+        self.voice_combo.addItems(['Spanish (Spain)', 'Spanish (Latin America)'])
         if voice:
             self.voice_combo.setCurrentText(voice)
 
@@ -77,4 +77,3 @@ class PodcastView(QWidget):
         widget = TextBlockWidget(text, voice, remove_callback=remove_block)
         self.text_block_widgets.append(widget)
         self.scroll_layout.addWidget(widget)
-

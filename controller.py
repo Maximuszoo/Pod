@@ -29,9 +29,9 @@ class PodcastController(QObject):
 
         for idx, widget in enumerate(self.view.text_block_widgets):
             text = widget.text_edit.toPlainText()
-            voice = widget.voice_combo.currentText()
+            voice = widget.voice_combo.currentText()  # Obtener la voz seleccionada
             self.model.text_blocks[idx].text = text
-            self.model.text_blocks[idx].voice = voice
+            self.model.text_blocks[idx].voice = self.model.available_voices[voice]  # Asignar la voz correcta
             
             # Simular procesamiento con un temporizador (o realizar el procesamiento real)
             QTimer.singleShot(1000 * (idx + 1), lambda: self.update_progress(idx + 1, total_blocks))
@@ -44,4 +44,3 @@ class PodcastController(QObject):
         self.view.progress_bar.setValue(progress)
         if progress == total_blocks:
             self.view.status_label.setText("Podcast terminado")
-
