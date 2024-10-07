@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea, QHBoxLayout
+    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea, QHBoxLayout, QLineEdit
 )
 
 class TextBlockWidget(QWidget):
@@ -11,7 +11,7 @@ class TextBlockWidget(QWidget):
         self.text_edit.setText(text)
 
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)'])  # Nombres modificados
+        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)', 'Nueva Voz 1', 'Nueva Voz 2'])  # Nuevas voces agregadas
         if voice:
             self.voice_combo.setCurrentText(voice)
 
@@ -38,6 +38,13 @@ class PodcastView(QWidget):
         self.layout = QVBoxLayout(self)
 
         self.text_block_widgets = []
+
+        # Campo de texto para el título del podcast
+        self.title_label = QLabel("Título del podcast:")
+        self.title_input = QLineEdit(self)
+
+        self.layout.addWidget(self.title_label)
+        self.layout.addWidget(self.title_input)
 
         # ScrollArea para los bloques de texto
         self.scroll_area = QScrollArea(self)
@@ -80,3 +87,7 @@ class PodcastView(QWidget):
         widget = TextBlockWidget(text, voice, speed, remove_callback=remove_block)
         self.text_block_widgets.append(widget)
         self.scroll_layout.addWidget(widget)
+
+    def get_podcast_title(self):
+        """Retorna el título ingresado por el usuario"""
+        return self.title_input.text().strip() or "podcast"

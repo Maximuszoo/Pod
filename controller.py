@@ -34,14 +34,17 @@ class PodcastController(QObject):
 
             # Asignar los valores del texto, voz y velocidad en el modelo
             self.model.text_blocks[idx].text = text
-            self.model.text_blocks[idx].voice = self.model.available_voices[voice]
+            self.model.text_blocks[idx].voice = self.model.available_voices.get(voice, 'es-419')  # Asignar el código correcto de voz
             self.model.text_blocks[idx].speed = speed
 
             # Simular procesamiento con un temporizador (o realizar el procesamiento real)
             QTimer.singleShot(1000 * (idx + 1), lambda: self.update_progress(idx + 1, total_blocks))
 
+        # Obtener el título del podcast del usuario
+        podcast_title = self.view.get_podcast_title()
+
         # Generar el audio con los bloques de texto y sus respectivas voces y velocidades
-        self.model.generate_audio()
+        self.model.generate_audio(file_name=f"{podcast_title}.mp3")
         self.view.status_label.setText("Podcast terminado")
 
     def update_progress(self, progress, total_blocks):
