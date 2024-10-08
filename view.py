@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
 )
 
 class TextBlockWidget(QWidget):
-    def __init__(self, text='', voice='Google (Latin America)', speed='Normal', remove_callback=None, parent=None):
+    def __init__(self, text='', voice='Google (Latin America)', speed='Rápida', remove_callback=None, parent=None):
         super().__init__(parent)
         self.layout = QGridLayout(self)
 
@@ -86,7 +86,7 @@ class PodcastView(QWidget):
 
         self.setMinimumSize(800, 200)  # Establece un ancho mínimo y un alto mínimo en píxeles
 
-    def add_text_block_widget(self, text='', voice='Google (Latin America)', speed='Normal'):
+    def add_text_block_widget(self, text='', voice='Google (Latin America)', speed='Rápida'):
         """Agrega un bloque de texto con la opción de eliminarlo"""
         def remove_block():
             widget.deleteLater()
