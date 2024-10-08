@@ -11,7 +11,7 @@ class TextBlockWidget(QWidget):
         self.text_edit.setText(text)
 
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)', 'Nueva Voz 1', 'Nueva Voz 2'])  # Nuevas voces agregadas
+        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)']) 
         if voice:
             self.voice_combo.setCurrentText(voice)
 

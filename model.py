@@ -25,9 +25,7 @@ class PodcastModel:
         """Obtiene las voces disponibles para el programa"""
         voices = {
             'Google (Spain)': 'es-ES',  # Código correcto para español de España
-            'Google (Latin America)': 'es-419',  # Código para español latino
-            'Nueva Voz 1': 'es-CO',  # Ejemplo de nueva voz
-            'Nueva Voz 2': 'es-MX'   # Ejemplo de nueva voz
+            'Google (Latin America)': 'es-419'  # Código para español latino
         }
         return voices
 
@@ -51,41 +49,92 @@ class PodcastModel:
 
             # Verificar si el archivo temporal existe y tiene un tamaño adecuado
             if os.path.exists(temp_file) and os.path.getsize(temp_file) > 1000:  # Tamaño mínimo 1KB
-                # Ajustar la velocidad del audio
-                audio_segment = AudioSegment.from_mp3(temp_file)
-                adjusted_audio = audio_segment.speedup(playback_speed=self.speed_map[block.speed])
-
-                # Combinar con el audio final
-                if combined_audio is None:
-                    combined_audio = adjusted_audio
-                else:
-                    combined_audio += adjusted_audio
+                # Ajustar la velocidad del audio antes de agregarlo
+                adjusted_audio = self.adjust_audio_speed(temp_file, block.speed)
+                adjusted_audio.export(temp_file, format="mp3")  # Guardar el audio ajustado
 
                 temp_files.append(temp_file)
+            else:
+                print(f"Error generando el archivo de audio {temp_file}, se omitirá.")
 
-        if combined_audio:
-            combined_audio.export(file_name, format='mp3')
-            print(f"Podcast generado: {file_name}")
-        else:
-            print("No se generó audio debido a que todos los bloques de texto estaban vacíos.")
+        # Combinar todos los archivos temporales
+        if temp_files:
+            combined_audio = AudioSegment.from_file(temp_files[0])  # Cargar el primer archivo
+            for temp_file in temp_files[1:]:
+                next_audio = AudioSegment.from_file(temp_file)
+                combined_audio += next_audio  # Concatenar los audios
+
+            combined_audio.export(file_name, format="mp3")
 
         # Eliminar archivos temporales
         for temp_file in temp_files:
             os.remove(temp_file)
 
-    def generate_google_voice_audio(self, text, file_name, voice_code):
-        """Genera el audio usando Google TTS y lo guarda en file_name"""
-        if len(text) > self.max_tts_chars:
-            print(f"El texto excede el límite de {self.max_tts_chars} caracteres para Google TTS.")
-            return False
+    def generate_google_voice_audio(self, text, temp_file, voice_code):
+        """Genera audio usando la API de Google Translate, dividiendo el texto si es necesario"""
+        # Dividir el texto si excede el límite de caracteres
+        segments = self.split_text_into_segments(text, self.max_tts_chars)
 
-        url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={text}&tl={voice_code}&client=tw-ob"
-        response = requests.get(url)
+        combined_audio = AudioSegment.silent(duration=0)  # Inicia con un segmento de audio vacío
 
-        if response.status_code == 200:
-            with open(file_name, 'wb') as f:
-                f.write(response.content)
-            return True
-        else:
-            print(f"Error al generar el audio: {response.status_code}")
-            return False
+        for idx, segment in enumerate(segments):
+            # URL de la API de Google Translate
+            url = f"http://translate.google.com/translate_tts?ie=UTF-8&q={segment}&tl={voice_code}&client=tw-ob"
+            
+            # Realizar la solicitud y verificar si la respuesta es exitosa
+            response = requests.get(url)
+            if response.status_code == 200:
+                # Guardar la respuesta en un archivo temporal
+                segment_file = f"{temp_file}_part{idx}.mp3"
+                with open(segment_file, 'wb') as f:
+                    f.write(response.content)
+                
+                # Combinar el audio descargado
+                segment_audio = AudioSegment.from_file(segment_file)
+                combined_audio += segment_audio
+                
+                # Eliminar el archivo temporal de cada segmento
+                os.remove(segment_file)
+            else:
+                print(f"Error: No se pudo obtener el archivo de audio para el segmento '{segment}'. Status code: {response.status_code}")
+
+        # Exportar el archivo combinado
+        combined_audio.export(temp_file, format="mp3")
+
+    def split_text_into_segments(self, text, max_chars):
+        """Divide el texto en segmentos más pequeños basados en el límite de caracteres"""
+        words = text.split()
+        segments = []
+        current_segment = ""
+
+        for word in words:
+            if len(current_segment) + len(word) + 1 <= max_chars:  # +1 para el espacio
+                current_segment += (word + " ")
+            else:
+                segments.append(current_segment.strip())
+                current_segment = word + " "
+
+        if current_segment:  # Añadir el último segmento si queda algo
+            segments.append(current_segment.strip())
+
+        return segments
+
+    def adjust_audio_speed(self, file_path, speed):
+        """Ajusta la velocidad del audio según la selección del usuario"""
+        audio = AudioSegment.from_file(file_path)
+        playback_speed = self.speed_map.get(speed, 1.0)  # Velocidad normal si no está en el mapa
+
+        if playback_speed > 1.0:
+            # Si la velocidad es mayor a 1, aceleramos el audio
+            audio = audio.speedup(playback_speed=playback_speed)
+        elif playback_speed < 1.0:
+            # Si la velocidad es menor a 1, desaceleramos el audio
+            audio = self.slow_down_audio(audio, playback_speed)
+
+        return audio
+
+    def slow_down_audio(self, audio, factor):
+        """Desacelera el audio extendiendo la duración"""
+        # Redimensiona las muestras de audio para desacelerar
+        new_frame_rate = int(audio.frame_rate * factor)
+        return audio._spawn(audio.raw_data, overrides={'frame_rate': new_frame_rate}).set_frame_rate(audio.frame_rate)
