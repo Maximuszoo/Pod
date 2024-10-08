@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QObject, QTimer
+from PyQt5.QtWidgets import QMessageBox
 from model import PodcastModel
 from view import PodcastView
 
@@ -29,6 +30,11 @@ class PodcastController(QObject):
         """Genera el podcast y actualiza la barra de progreso"""
         title = self.view.title_edit.text()
         save_path = self.view.get_save_path()
+
+        # Verificar si la ruta de guardado está vacía
+        if not save_path:
+            self.show_warning("Debe seleccionar o ingresar una ruta de guardado antes de generar el podcast.")
+            return
 
         if not title:
             title = "podcast"  # Nombre por defecto si no se ingresa un título
@@ -61,3 +67,12 @@ class PodcastController(QObject):
         self.view.progress_bar.setValue(progress)
         if progress == total_blocks:
             self.view.status_label.setText("Podcast terminado")
+
+    def show_warning(self, message):
+        """Muestra un cuadro de advertencia con el mensaje proporcionado"""
+        warning_box = QMessageBox()
+        warning_box.setIcon(QMessageBox.Warning)
+        warning_box.setWindowTitle("Advertencia")
+        warning_box.setText(message)
+        warning_box.setStandardButtons(QMessageBox.Ok)
+        warning_box.exec_()
