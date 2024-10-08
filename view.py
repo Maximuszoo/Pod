@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea, QHBoxLayout, QLineEdit
+    QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel, QComboBox, QGridLayout, QProgressBar, QScrollArea, QHBoxLayout, QLineEdit, QFileDialog
 )
 
 class TextBlockWidget(QWidget):
@@ -11,7 +11,7 @@ class TextBlockWidget(QWidget):
         self.text_edit.setText(text)
 
         self.voice_combo = QComboBox()
-        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)']) 
+        self.voice_combo.addItems(['Google (Spain)', 'Google (Latin America)'])  # Nombres modificados
         if voice:
             self.voice_combo.setCurrentText(voice)
 
@@ -39,12 +39,21 @@ class PodcastView(QWidget):
 
         self.text_block_widgets = []
 
-        # Campo de texto para el título del podcast
-        self.title_label = QLabel("Título del podcast:")
-        self.title_input = QLineEdit(self)
-
+        # Campo de entrada para el título del podcast
+        self.title_label = QLabel("Título del Podcast:")
+        self.title_edit = QLineEdit(self)
         self.layout.addWidget(self.title_label)
-        self.layout.addWidget(self.title_input)
+        self.layout.addWidget(self.title_edit)
+
+        # Campo de entrada para la ruta de guardado
+        self.save_path_label = QLabel("Ruta de guardado:")
+        self.save_path_edit = QLineEdit(self)
+        self.layout.addWidget(self.save_path_label)
+        self.layout.addWidget(self.save_path_edit)
+
+        # Botón para seleccionar la ruta de guardado
+        self.browse_button = QPushButton("Seleccionar carpeta")
+        self.layout.addWidget(self.browse_button)
 
         # ScrollArea para los bloques de texto
         self.scroll_area = QScrollArea(self)
@@ -88,6 +97,12 @@ class PodcastView(QWidget):
         self.text_block_widgets.append(widget)
         self.scroll_layout.addWidget(widget)
 
-    def get_podcast_title(self):
-        """Retorna el título ingresado por el usuario"""
-        return self.title_input.text().strip() or "podcast"
+    def get_save_path(self):
+        """Devuelve la ruta de guardado actual ingresada por el usuario"""
+        return self.save_path_edit.text()
+
+    def open_save_dialog(self):
+        """Abre un cuadro de diálogo para seleccionar la carpeta de guardado"""
+        folder = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta de guardado")
+        if folder:
+            self.save_path_edit.setText(folder)

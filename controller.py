@@ -11,6 +11,7 @@ class PodcastController(QObject):
         # Conectar los botones a las funciones del controlador
         self.view.add_text_block_button.clicked.connect(self.add_text_block)
         self.view.generate_audio_button.clicked.connect(self.generate_podcast)
+        self.view.browse_button.clicked.connect(self.select_save_folder)
 
         # Inicializar con el primer bloque de texto
         self.view.add_text_block_widget()
@@ -20,8 +21,19 @@ class PodcastController(QObject):
         self.model.add_text_block()
         self.view.add_text_block_widget()
 
+    def select_save_folder(self):
+        """Abre el cuadro de diálogo para seleccionar la carpeta de guardado"""
+        self.view.open_save_dialog()
+
     def generate_podcast(self):
         """Genera el podcast y actualiza la barra de progreso"""
+        title = self.view.title_edit.text()
+        save_path = self.view.get_save_path()
+
+        if not title:
+            title = "podcast"  # Nombre por defecto si no se ingresa un título
+
+        file_name = f"{save_path}/{title}.mp3"
         self.view.status_label.setText("Creando podcast...")
         total_blocks = len(self.view.text_block_widgets)
         self.view.progress_bar.setMaximum(total_blocks)
@@ -34,17 +46,14 @@ class PodcastController(QObject):
 
             # Asignar los valores del texto, voz y velocidad en el modelo
             self.model.text_blocks[idx].text = text
-            self.model.text_blocks[idx].voice = self.model.available_voices.get(voice, 'es-419')  # Asignar el código correcto de voz
+            self.model.text_blocks[idx].voice = self.model.available_voices[voice]
             self.model.text_blocks[idx].speed = speed
 
             # Simular procesamiento con un temporizador (o realizar el procesamiento real)
             QTimer.singleShot(1000 * (idx + 1), lambda: self.update_progress(idx + 1, total_blocks))
 
-        # Obtener el título del podcast del usuario
-        podcast_title = self.view.get_podcast_title()
-
         # Generar el audio con los bloques de texto y sus respectivas voces y velocidades
-        self.model.generate_audio(file_name=f"{podcast_title}.mp3")
+        self.model.generate_audio(file_name)
         self.view.status_label.setText("Podcast terminado")
 
     def update_progress(self, progress, total_blocks):
